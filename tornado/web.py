@@ -116,12 +116,13 @@ class RequestHandler(object):
                          "OPTIONS")
 
     _template_loaders = {}  # {path: template.BaseLoader}
-    _template_loader_lock = threading.Lock()
+    _template_loader_lock = threading.Lock() ### lock?
     _remove_control_chars_regex = re.compile(r"[\x00-\x08\x0e-\x1f]")
 
     def __init__(self, application, request, **kwargs):
         super(RequestHandler, self).__init__()
 
+        ### RequestHandler 可以获取application
         self.application = application
         self.request = request
         self._headers_written = False
@@ -211,6 +212,7 @@ class RequestHandler(object):
         """
         pass
 
+    ### 在每个请求执行完毕后
     def on_finish(self):
         """Called after the end of a request.
 
@@ -221,6 +223,7 @@ class RequestHandler(object):
         """
         pass
 
+    ### 在异步请求连接被提前中断的情况
     def on_connection_close(self):
         """Called in async handlers if the client closed the connection.
 
@@ -355,6 +358,7 @@ class RequestHandler(object):
             return default
         return args[-1]
 
+    ### arguments 某个key值对应的value 可能是数组.默认裁剪空格
     def get_arguments(self, name, strip=True):
         """Returns a list of the arguments with the given name.
 
@@ -508,6 +512,7 @@ class RequestHandler(object):
                                                      utf8(url)))
         self.finish()
 
+    ### chunk 是支持字典的
     def write(self, chunk):
         """Writes the given chunk to the output buffer.
 
@@ -816,12 +821,14 @@ class RequestHandler(object):
         Users of ``get_error_html`` are encouraged to convert their code
         to override ``write_error`` instead.
         """
+        ### 实现get_error_html ？
         if hasattr(self, 'get_error_html'):
             if 'exc_info' in kwargs:
                 exc_info = kwargs.pop('exc_info')
                 kwargs['exception'] = exc_info[1]
                 try:
-                    # Put the traceback into sys.exc_info()
+                    # Put the toraceback into sys.exc_info()
+                    # 这函数的作用？
                     raise_exc_info(exc_info)
                 except Exception:
                     self.finish(self.get_error_html(status_code, **kwargs))
@@ -1030,6 +1037,7 @@ class RequestHandler(object):
 
         return base + get_url(self.settings, path, **kwargs)
 
+    ## TODO
     def async_callback(self, callback, *args, **kwargs):
         """Obsolete - catches exceptions from the wrapped function.
 
@@ -1061,6 +1069,7 @@ class RequestHandler(object):
         """Alias for `Application.reverse_url`."""
         return self.application.reverse_url(name, *args)
 
+    ### compute if not modified
     def compute_etag(self):
         """Computes the etag header to be used for this request.
 
@@ -1252,6 +1261,7 @@ class RequestHandler(object):
             self.clear_header(h)
 
 
+### TODO 怎么跟ioloop 配合的
 def asynchronous(method):
     """Wrap request handler methods with this if they are asynchronous.
 
@@ -1334,7 +1344,7 @@ def removeslash(method):
         return method(self, *args, **kwargs)
     return wrapper
 
-
+### 这个好用。。。不过会给函数加太多装饰
 def addslash(method):
     """Use this decorator to add a missing trailing slash to the request path.
 
